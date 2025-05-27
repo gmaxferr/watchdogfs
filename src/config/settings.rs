@@ -1,5 +1,4 @@
 // Config structures
-
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
