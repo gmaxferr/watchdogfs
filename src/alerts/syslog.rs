@@ -2,6 +2,7 @@
 use anyhow::Result;
 use syslog::{Facility, Formatter3164};
 
+/// Send a one-line message to the local syslog.
 pub fn send_syslog(message: &str) -> Result<()> {
     let formatter = Formatter3164 {
         facility: Facility::LOG_USER,

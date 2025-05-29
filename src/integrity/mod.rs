@@ -37,3 +37,13 @@ pub fn generate_baseline() -> Result<Baseline> {
     println!("✅ Baseline generated and saved to {}", out_path.display());
     Ok(baseline_map)
 }
+
+pub fn init_command(path: &str) -> Result<()> {
+    let p = std::path::Path::new(path);
+    if p.exists() {
+        anyhow::bail!("Config file {} already exists", path);
+    }
+    crate::config::write_default(p)?;
+    println!("✅ Created new config at {}", path);
+    Ok(())
+}

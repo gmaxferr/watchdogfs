@@ -2023,6 +2023,7 @@ dependencies = [
  "serde_yaml",
  "sha2",
  "syslog",
+ "tempfile",
  "tracing",
  "tracing-appender",
  "tracing-subscriber",

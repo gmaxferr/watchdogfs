@@ -1,4 +1,5 @@
 
+pub mod selfcheck;
 pub mod cli;
 pub mod config;
 pub mod integrity;

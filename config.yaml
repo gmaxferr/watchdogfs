@@ -1,0 +1,16 @@
+# config.yaml
+watch_paths:
+  - /etc/nginx/nginx.conf
+  - /opt/firmware.bin
+
+ignore_patterns: []
+
+alerts:
+  webhook_url: null
+  script_path: null
+  use_syslog: false
+
+watcher:
+  mode: inotify    # “inotify” or “poll”
+  poll_interval: 5 # seconds, used only if mode == “poll”
+  debounce_ms: 500 # milliseconds to coalesce rapid events

@@ -13,3 +13,34 @@ pub fn generate(paths: &[String]) -> Result<Baseline> {
     }
     Ok(baseline)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::generate;
+    use tempfile::tempdir;
+    use std::fs::File;
+    use std::io::Write;
+
+    #[test]
+    fn baseline_two_files() {
+        let dir = tempdir().unwrap();
+
+        let a = dir.path().join("a.txt");
+        let mut fa = File::create(&a).unwrap();
+        write!(fa, "foo").unwrap();
+
+        let b = dir.path().join("b.txt");
+        let mut fb = File::create(&b).unwrap();
+        write!(fb, "bar").unwrap();
+
+        let paths = vec![
+            a.to_str().unwrap().to_string(),
+            b.to_str().unwrap().to_string(),
+        ];
+        let baseline = generate(&paths).unwrap();
+        assert_eq!(baseline.len(), 2);
+        // Ensure keys match
+        assert!(baseline.contains_key(&paths[0]));
+        assert!(baseline.contains_key(&paths[1]));
+    }
+}

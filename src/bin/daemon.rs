@@ -4,8 +4,7 @@ use std::{fs, path::PathBuf};
 use watchdogfs::{
     config::Config,
     integrity::{Baseline, generate_map},
-    logger,
-    watcher,
+    logger, selfcheck, watcher,
 };
 
 fn main() -> Result<()> {
@@ -14,6 +13,11 @@ fn main() -> Result<()> {
 
     let config = load_config("/etc/watchdogfs/config.yaml")?;
     tracing::info!("Config loaded: {:?}", config);
+
+    // Self-integrity check
+    if let Some(sip) = &config.self_integrity_path {
+        selfcheck::verify(sip)?;
+    }
 
     let baseline = load_or_create_baseline(&config)?;
     tracing::info!("Baseline ready: {} entries", baseline.len());
