@@ -1,7 +1,7 @@
 // Baseline generation & validation
-use std::collections::HashMap;
 use crate::integrity::calculate_checksum;
 use anyhow::Result;
+use std::collections::HashMap;
 
 pub type Baseline = HashMap<String, String>;
 
@@ -17,9 +17,9 @@ pub fn generate(paths: &[String]) -> Result<Baseline> {
 #[cfg(test)]
 mod tests {
     use super::generate;
-    use tempfile::tempdir;
     use std::fs::File;
     use std::io::Write;
+    use tempfile::tempdir;
 
     #[test]
     fn baseline_two_files() {

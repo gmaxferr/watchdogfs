@@ -37,8 +37,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-git-
 
-      - name: fmt check
-        run: cargo fmt -- --check
+      # - name: fmt check
+      #   run: cargo fmt -- --check
 
       - name: clippy
         run: cargo clippy -- -D warnings

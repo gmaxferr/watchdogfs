@@ -14,9 +14,9 @@ pub fn calculate_checksum(path: &str) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::calculate_checksum;
-    use tempfile::NamedTempFile;
-    use std::io::Write;
     use std::fs;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
 
     #[test]
     fn checksum_empty_file() {

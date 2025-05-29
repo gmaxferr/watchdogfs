@@ -38,8 +38,8 @@ pub fn verify(self_integrity_path: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::verify;
-    use tempfile::NamedTempFile;
     use std::io::Write;
+    use tempfile::NamedTempFile;
 
     #[test]
     fn missing_integrity_file_errors() {
