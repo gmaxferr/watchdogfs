@@ -137,7 +137,7 @@ fn on_event(
 }
 
 fn on_poll(
-    path: &PathBuf,
+    path: &std::path::Path,
     cfg: &Config,
     baseline: &mut Baseline,
     last_seen: &mut Instant,

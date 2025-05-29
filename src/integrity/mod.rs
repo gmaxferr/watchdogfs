@@ -28,10 +28,10 @@ pub fn generate_baseline() -> Result<Baseline> {
     let baseline_map = generate_map(&cfg.watch_paths)?;
 
     // 3) Serialize & write to baseline.json
-    let out_path = Path::new("baseline.json");
+    let out_path = Path::new("baseline.json").to_path_buf();
     let json = serde_json::to_string_pretty(&baseline_map)
         .context("Failed to serialize baseline to JSON")?;
-    fs::write(&out_path, json)
+    fs::write(out_path.as_path(), json)
         .with_context(|| format!("Failed to write baseline to {}", out_path.display()))?;
 
     println!("✅ Baseline generated and saved to {}", out_path.display());

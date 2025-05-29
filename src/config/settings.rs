@@ -1,8 +1,7 @@
 // Config structures
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
 pub struct Config {
     pub watch_paths: Vec<String>,
     pub ignore_patterns: Vec<String>,
@@ -12,19 +11,6 @@ pub struct Config {
     /// Optional path to a file containing the expected SHA256 of this binary.
     pub self_integrity_path: Option<String>,
 }
-
-impl Default for Config {
-    fn default() -> Self {
-        Config {
-            watch_paths: Vec::new(),
-            ignore_patterns: Vec::new(),
-            alerts: AlertsConfig::default(),
-            watcher: WatcherConfig::default(),
-            self_integrity_path: None,
-        }
-    }
-}
-
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct WatcherConfig {
@@ -43,19 +29,9 @@ impl Default for WatcherConfig {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
 pub struct AlertsConfig {
     pub webhook_url: Option<String>,
     pub script_path: Option<String>,
     pub use_syslog: bool,
-}
-
-impl Default for AlertsConfig {
-    fn default() -> Self {
-        AlertsConfig {
-            webhook_url: None,
-            script_path: None,
-            use_syslog: false,
-        }
-    }
 }

@@ -1,5 +1,4 @@
 use anyhow::{Context, Result};
-use serde_yaml;
 use std::{fs, path::PathBuf};
 use watchdogfs::{
     config::Config,
