@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["blocking","json","default-tls"] }
 clap = { version = "4.5", features = ["derive"] }
 notify = "8.0"
 sha2 = "0.10"
@@ -14,7 +15,6 @@ tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
 tracing-appender = "0.2"
 anyhow = "1.0"
 syslog = "7.0.0"
-reqwest = {version = "0.12", features = ["blocking"]}
 serde_json = "1.0.140"
 
 [build-dependencies]
@@ -22,3 +22,7 @@ chrono = { version = "0.4", features = ["serde"] }
 
 [dev-dependencies]
 tempfile = "3.20"
+
+[dependencies.openssl-sys]
+version = "0.9"
+features = ["vendored"]
