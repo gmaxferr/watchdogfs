@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default, PartialEq, Eq)]
 pub struct JobConfig {
     /// Which paths this job should watch
     pub watch_paths: Vec<String>,
@@ -18,16 +18,6 @@ pub struct JobConfig {
     pub watcher: WatcherConfig,
 }
 
-impl Default for JobConfig {
-    fn default() -> Self {
-        JobConfig {
-            watch_paths: Vec::new(),
-            ignore_patterns: Vec::new(),
-            alerts: AlertsConfig::default(),
-            watcher: WatcherConfig::default(),
-        }
-    }
-}
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
 pub struct Config {
