@@ -1,6 +1,7 @@
 # WatchdogFS  
 *Filesystem Integrity Monitoring for Linux & Embedded*
 
+[![CI](https://github.com/gmaxferr/watchdogfs/actions/workflows/ci.yml/badge.svg)](https://github.com/gmaxferr/watchdogfs/actions/workflows/ci.yml)
 ---
 
 ## 📋 Description
