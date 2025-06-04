@@ -1,16 +1,31 @@
-# config.yaml
-watch_paths:
-  - /etc/nginx/nginx.conf
-  - /opt/firmware.bin
+# WatchdogFS/config.yaml
 
-ignore_patterns: []
+self_integrity_path: "/etc/watchdogfs/selfhash.txt"
 
-alerts:
-  webhook_url: null
-  script_path: null
-  use_syslog: false
+jobs:
+  job1:
+    watch_paths:
+      - "/etc"
+      - "/var/log/syslog"
+    ignore_patterns: []
+    alerts:
+      webhook_url: "https://example.com/hook1"
+      script_path: "/usr/local/bin/alert1.sh"
+      use_syslog: true
+    watcher:
+      mode: "inotify"
+      poll_interval: 5
+      debounce_ms: 500
 
-watcher:
-  mode: inotify    # “inotify” or “poll”
-  poll_interval: 5 # seconds, used only if mode == “poll”
-  debounce_ms: 500 # milliseconds to coalesce rapid events
+  job2:
+    watch_paths:
+      - "/home/user/project"
+    ignore_patterns: []
+    alerts:
+      webhook_url: "https://example.com/hook2"
+      script_path: "/usr/local/bin/alert2.sh"
+      use_syslog: false
+    watcher:
+      mode: "poll"
+      poll_interval: 10
+      debounce_ms: 1000

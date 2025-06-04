@@ -1,13 +1,13 @@
 // YAML configuration parsing (serde_yaml)
 mod settings;
-pub use settings::{Config, AlertsConfig};
+pub use settings::{Config, JobConfig, AlertsConfig, WatcherConfig};
 
 use std::{fs, path::Path};
 use anyhow::{Context, Result};
 use serde_yaml;
 
 pub fn write_default<P: AsRef<Path>>(path: P) -> Result<()> {
-    let cfg: Config = Config::default();
+    let cfg: Config = Config::default(); // now has jobs = {}
     let yaml = serde_yaml::to_string(&cfg)
         .context("Failed to serialize default Config")?;
     fs::write(&path, yaml)
@@ -35,9 +35,8 @@ mod tests {
         let path = tmp.path();
         write_default(path).unwrap();
         let cfg = load(path).unwrap();
-        // Default Config has no watch_paths and no alerts
-        assert!(cfg.watch_paths.is_empty());
-        assert!(!cfg.alerts.use_syslog);
-        // The YAML we wrote should parse back to the same structure
+        // Default Config has no jobs
+        assert!(cfg.jobs.is_empty());
+        // The YAML should parse back to the same structure
     }
 }

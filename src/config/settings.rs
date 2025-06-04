@@ -1,14 +1,40 @@
 // Config structures
+
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct JobConfig {
+    /// Which paths this job should watch
+    pub watch_paths: Vec<String>,
+
+    /// Which glob patterns to ignore (not yet used but reserved)
+    pub ignore_patterns: Vec<String>,
+
+    /// Per‐job alert settings
+    pub alerts: AlertsConfig,
+
+    /// Per‐job watcher settings
+    pub watcher: WatcherConfig,
+}
+
+impl Default for JobConfig {
+    fn default() -> Self {
+        JobConfig {
+            watch_paths: Vec::new(),
+            ignore_patterns: Vec::new(),
+            alerts: AlertsConfig::default(),
+            watcher: WatcherConfig::default(),
+        }
+    }
+}
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
 pub struct Config {
-    pub watch_paths: Vec<String>,
-    pub ignore_patterns: Vec<String>,
-    pub alerts: AlertsConfig,
-    pub watcher: WatcherConfig,
+    /// A map from “job name” to its configuration
+    pub jobs: HashMap<String, JobConfig>,
 
-    /// Optional path to a file containing the expected SHA256 of this binary.
+    /// Optional path to a file containing the expected SHA256 of this binary (self‐integrity)
     pub self_integrity_path: Option<String>,
 }
 
