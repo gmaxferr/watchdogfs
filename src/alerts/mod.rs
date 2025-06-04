@@ -1,10 +1,12 @@
 //! Alerting subsystem: syslog, HTTP webhook, or local script.
 
 mod local_script;
+mod plugin;
 mod syslog;
 mod webhook;
 
 pub use local_script::execute_script;
+pub use plugin::execute_plugin;
 pub use syslog::send_syslog;
 pub use webhook::send_webhook;
 
@@ -80,6 +82,13 @@ pub fn dispatch(cfg: &AlertsConfig, path: &Path, old: String, new: String) {
     if let Some(script) = &cfg.script_path {
         if let Err(e) = execute_script(script) {
             error!("script alert `{}` failed: {}", script, e);
+        }
+    }
+
+    // 5) Plugin
+    if let Some(plugin_path) = &cfg.plugin_path {
+        if let Err(e) = execute_plugin(plugin_path, &payload) {
+            error!("plugin alert `{}` failed: {}", plugin_path, e);
         }
     }
 }

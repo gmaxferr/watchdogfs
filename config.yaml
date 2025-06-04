@@ -15,6 +15,7 @@ jobs:
       use_syslog: true
       webhook_url: "https://alerts.example.com/notify"
       script_path: "/usr/local/bin/alert_handler.sh"
+      plugin_path: "/usr/local/lib/my_alert_plugin.so"
       payload_template: |
         {
           "changed_file": "{{path}}",

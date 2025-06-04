@@ -18,7 +18,6 @@ pub struct JobConfig {
     pub watcher: WatcherConfig,
 }
 
-
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
 pub struct Config {
     /// A map from “job name” to its configuration
@@ -55,6 +54,10 @@ pub struct AlertsConfig {
 
     /// If true, emit a syslog message
     pub use_syslog: bool,
+    
+    /// If set, load this shared library and invoke its `run_alert` function
+    /// with the JSON payload (C‐ABI: `fn run_alert(payload: *const c_char) -> i32`).
+    pub plugin_path: Option<String>,
 
     /// An optional Liquid template (as a string) to render the JSON payload.
     /// Available variables: `path`, `old`, `new`.
