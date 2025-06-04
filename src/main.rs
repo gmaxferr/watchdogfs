@@ -22,6 +22,12 @@ fn main() -> Result<()> {
             config: config_path,
             with_baseline,
         } => {
+            // If they asked for `--with-baseline` but gave a custom filename,
+            // we refuse and print an error.
+            if with_baseline && config_path != "config.yaml" {
+                eprintln!("❌ When using --with-baseline, the config file must be named `config.yaml`");
+            }
+            
             // 1) Write a default config.yaml (or error if it already exists)
             config::write_default(&config_path)?;
 
