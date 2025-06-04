@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct JobConfig {
     /// Which paths this job should watch
     pub watch_paths: Vec<String>,
@@ -38,7 +38,7 @@ pub struct Config {
     pub self_integrity_path: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct WatcherConfig {
     pub mode: String,
     pub poll_interval: Option<u64>,
@@ -55,7 +55,7 @@ impl Default for WatcherConfig {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default, PartialEq, Eq)]
 pub struct AlertsConfig {
     pub webhook_url: Option<String>,
     pub script_path: Option<String>,
