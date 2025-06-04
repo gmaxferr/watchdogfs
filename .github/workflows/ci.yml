@@ -117,7 +117,7 @@ jobs:
           # target/$TARGET/release/<your_binary_name>
           #
           # For macOS: target/x86_64-apple-darwin/release/<your_binary_name>
-          BINARY_NAME="my-cli"             # <-- Replace with your actual binary name
+          BINARY_NAME="watchdogfs"             # <-- Replace with your actual binary name
           TARGET_DIR="target/${{ matrix.target }}/release"
           mkdir -p artifacts/${{ matrix.target }}
           
