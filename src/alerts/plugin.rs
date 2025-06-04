@@ -33,8 +33,17 @@ impl Plugin {
             unsafe { lib.get(b"run_alert\0") }
                 .with_context(|| format!("symbol `run_alert` not found in `{}`", path))?;
 
-        // We cast to `'static` so that we can store the symbol in our struct.
-        let run_alert_fn = unsafe { std::mem::transmute(run_alert_fn) };
+        // Cast from `Symbol<'_, _>` to `Symbol<'static, _>` so that it can be stored.
+        #[allow(clippy::missing_transmute_annotations)]
+        let run_alert_fn: Symbol<
+            'static,
+            unsafe extern "C" fn(*const std::os::raw::c_char) -> i32,
+        > = unsafe {
+            std::mem::transmute::<
+                Symbol<unsafe extern "C" fn(*const std::os::raw::c_char) -> i32>,
+                Symbol<'static, unsafe extern "C" fn(*const std::os::raw::c_char) -> i32>,
+            >(run_alert_fn)
+        };
 
         Ok(Plugin {
             _lib: lib,
