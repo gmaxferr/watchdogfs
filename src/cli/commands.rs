@@ -8,6 +8,10 @@ pub enum Commands {
         /// Path to create config at (default: ./config.yaml)
         #[arg(short, long, default_value = "config.yaml")]
         config: String,
+        
+        /// Also generate per‐job baseline files immediately
+        #[arg(long)]
+        with_baseline: bool,
     },
 
     /// Generate baseline checksums

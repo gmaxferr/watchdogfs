@@ -86,9 +86,34 @@ mod tests {
 
     #[test]
     fn init_command_parses() {
+        // Old: ["watchdogfs", "init", "-c", "foo.yaml"]
+        // Now we must provide at least the boolean (even if false), or adjust the signature.
+        // By default, `with_baseline` is false, so tests can stay the same:
+
         let args = Cli::parse_from(&["watchdogfs", "init", "-c", "foo.yaml"]);
         match args.command {
-            super::Commands::Init { config } => assert_eq!(config, "foo.yaml"),
+            super::Commands::Init {
+                config,
+                with_baseline,
+            } => {
+                assert_eq!(config, "foo.yaml");
+                assert!(!with_baseline);
+            }
+            _ => panic!("expected Init command"),
+        }
+    }
+
+    #[test]
+    fn init_with_baseline_parses() {
+        let args = Cli::parse_from(&["watchdogfs", "init", "-c", "foo.yaml", "--with-baseline"]);
+        match args.command {
+            super::Commands::Init {
+                config,
+                with_baseline,
+            } => {
+                assert_eq!(config, "foo.yaml");
+                assert!(with_baseline);
+            }
             _ => panic!("expected Init command"),
         }
     }

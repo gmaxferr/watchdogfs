@@ -3,7 +3,7 @@
 mod baseline;
 mod checksum;
 
-use crate::config::Config;
+use crate::config::{Config, write_default};
 use anyhow::{Context, Result};
 use serde_json;
 use serde_yaml;
@@ -12,8 +12,27 @@ use std::fs;
 pub use baseline::{Baseline, generate as generate_map};
 pub use checksum::*;
 
-pub fn init(_files: Vec<String>) -> Result<()> {
-    // TODO: implement `watchdogfs init` logic (e.g. write config.yaml)
+/// To write a default config and auto‐generate all baselines.
+pub fn init(files: Vec<String>) -> Result<()> {
+    // files[0] might be the path to config.yaml
+    // (depends on how the CLI is wired up)
+    if files.is_empty() {
+        anyhow::bail!("Expected at least one argument for `init`");
+    }
+    let config_path = &files[0];
+    let path = std::path::Path::new(config_path);
+    if path.exists() {
+        anyhow::bail!("Config file {} already exists", config_path);
+    }
+
+    // 1) Create default config.yaml at `config_path`
+    write_default(path)?;
+    println!("✅ Created default config at {}", config_path);
+
+    // 2) Immediately generate all the per‐job baseline files.
+    generate_baseline()?;
+    println!("✅ All baselines generated.");
+
     Ok(())
 }
 
@@ -54,6 +73,7 @@ pub fn generate_baseline() -> Result<()> {
 
     Ok(())
 }
+
 pub fn init_command(path: &str) -> Result<()> {
     let p = std::path::Path::new(path);
     if p.exists() {

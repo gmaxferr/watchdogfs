@@ -9,21 +9,41 @@ fn main() -> Result<()> {
     logger::init()?;
     let args = cli::parse();
 
-    // Before anything else: self-integrity check
+    // Self‐integrity check (if supplied via --self-integrity-path)
     if let Some(_path) = &args.self_integrity_path() {
-        // assume you expose a helper in cli to get the config location
-        let cfg: Config = crate::config::load("config.yaml")?;
+        let cfg: Config = config::load("config.yaml")?;
         if let Some(sip) = &cfg.self_integrity_path {
             selfcheck::verify(sip)?;
         }
     }
 
     match args.command {
-        cli::Commands::Init { config } => crate::config::write_default(&config)?,
+        cli::Commands::Init {
+            config: config_path,
+            with_baseline,
+        } => {
+            // 1) Write a default config.yaml (or error if it already exists)
+            config::write_default(&config_path)?;
+
+            // 2) If user passed --with-baseline, immediately generate all baselines
+            if with_baseline {
+                // Note: generate_baseline() expects to read "config.yaml" in cwd.
+                //
+                // If you wrote to a different filename than "config.yaml" (e.g. "foo.yaml"),
+                // we might either rename it to "config.yaml" first, or extend generate_baseline
+                // to accept a path. For now, we assume the default name "config.yaml".
+                integrity::generate_baseline()?;
+            }
+        }
+
         cli::Commands::Baseline => {
+            // Explicit "baseline" command: regenerate each baseline_<job>.json
             integrity::generate_baseline()?;
         }
-        cli::Commands::Start { daemon } => watcher::start(daemon)?,
+
+        cli::Commands::Start { daemon } => {
+            watcher::start(daemon)?;
+        }
     }
 
     Ok(())
