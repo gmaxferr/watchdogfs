@@ -1,31 +1,46 @@
-# WatchdogFS/config.yaml
-
-self_integrity_path: "/etc/watchdogfs/selfhash.txt"
+# Optional: verify this daemon’s binary against a known SHA-256
+self_integrity_path: "/usr/local/share/watchdogfs/self.sha256"
 
 jobs:
-  job1:
+  check_etc_passwd:
     watch_paths:
-      - "/etc"
-      - "/var/log/syslog"
+      - "/etc/passwd"
+      - "/etc/group"
     ignore_patterns: []
+    watcher:
+      mode: "inotify"        # use inotify for immediate alerts
+      poll_interval: 5       # (ignored in inotify mode, but kept for completeness)
+      debounce_ms: 500       # debounce window in milliseconds
     alerts:
-      webhook_url: "https://example.com/hook1"
-      script_path: "/usr/local/bin/alert1.sh"
       use_syslog: true
-    watcher:
-      mode: "inotify"
-      poll_interval: 5
-      debounce_ms: 500
+      webhook_url: "https://alerts.example.com/notify"
+      script_path: "/usr/local/bin/alert_handler.sh"
+      payload_template: |
+        {
+          "changed_file": "{{path}}",
+          "previous_checksum": "{{old}}",
+          "current_checksum": "{{new}}",
+          "severity": "critical"
+        }
 
-  job2:
+  check_var_www:
     watch_paths:
-      - "/home/user/project"
-    ignore_patterns: []
-    alerts:
-      webhook_url: "https://example.com/hook2"
-      script_path: "/usr/local/bin/alert2.sh"
-      use_syslog: false
+      - "/var/www/html"
+    ignore_patterns:
+      - "*.tmp"
+      - "*.swp"
     watcher:
-      mode: "poll"
-      poll_interval: 10
-      debounce_ms: 1000
+      mode: "poll"           # fall back to polling every interval
+      poll_interval: 10      # check every 10 seconds
+      debounce_ms: 1000      # ignore repeat‐events within 1 second
+    alerts:
+      use_syslog: false
+      webhook_url: null       # no webhook for this job
+      script_path: "/usr/local/bin/www_alert.sh"
+      payload_template: |
+        {
+          "alert": "web content modified",
+          "file": "{{path}}",
+          "old_sum": "{{old}}",
+          "new_sum": "{{new}}"
+        }

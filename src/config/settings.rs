@@ -47,7 +47,16 @@ impl Default for WatcherConfig {
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default, PartialEq, Eq)]
 pub struct AlertsConfig {
+    /// If set, send event via an HTTP POST (JSON) to this URL
     pub webhook_url: Option<String>,
+
+    /// If set, execute a local script (no args) on alert
     pub script_path: Option<String>,
+
+    /// If true, emit a syslog message
     pub use_syslog: bool,
+
+    /// An optional Liquid template (as a string) to render the JSON payload.
+    /// Available variables: `path`, `old`, `new`.
+    pub payload_template: Option<String>,
 }
