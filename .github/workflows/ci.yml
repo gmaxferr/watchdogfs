@@ -86,12 +86,11 @@ jobs:
           toolchain: stable
 
       # Install cross (cached by Cargo)
-      - name: Install cross
-        run: cargo install cross
-
-      # Expose ~/.cargo/bin (where `cross` was installed) to PATH
-      - name: Add Cargo bin to PATH
-        run: echo "${HOME}/.cargo/bin" >> $GITHUB_PATH
+      - name: Install cross (pinned to 0.2.5)
+        uses: actions-rs/install@v1
+        with:
+          crate: cross
+          version: "0.2.5"
 
       # Ensure the Rust target is added (though cross usually handles this)
       - name: Add Rust target (if needed)
