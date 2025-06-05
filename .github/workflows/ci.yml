@@ -11,7 +11,7 @@ on:
   pull_request:
 
 env:
-  # Ensure we cache ~/.cargo so both registry + git caches are shared
+  # Ensure we cache ~/.cargo so both registry+git caches are shared
   CARGO_HOME: ~/.cargo
   RUSTUP_HOME:  ~/.rustup
 
@@ -23,19 +23,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4                # latest checkout action :contentReference[oaicite:12]{index=12}
 
       - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@main        # actively maintained Rust installer :contentReference[oaicite:13]{index=13}
         with:
           toolchain: stable
           profile: minimal
           components: rustfmt, clippy
-          override: true
 
       # Cache the registry and index so that `cargo fetch` is fast
       - name: Cache cargo registry
-        uses: actions/cache@v3
+        uses: actions/cache@v3                   # v3 is the current cache action :contentReference[oaicite:14]{index=14}
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
@@ -43,7 +42,7 @@ jobs:
             ${{ runner.os }}-cargo-registry-
 
       - name: Cache cargo-git index
-        uses: actions/cache@v3
+        uses: actions/cache@v3                   # cache the git index for faster fetches :contentReference[oaicite:15]{index=15}
         with:
           path: ~/.cargo/git
           key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
@@ -61,16 +60,16 @@ jobs:
   # ────────────────────────────────────────────────────────────────────────────
   # 2) Release build: only runs when you push a tag (vX.Y.Z)
   #    a) Builds for multiple targets in parallel (using `cross`)
-  #    b) Uploads each compiled binary to the Release as an “asset”
+  #    b) Uploads each compiled binary to the Release job as an artifact
   # ────────────────────────────────────────────────────────────────────────────
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    needs: test-and-lint       # ensure tests pass before building release
+    needs: test-and-lint       # ensure tests pass before building release :contentReference[oaicite:16]{index=16}
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        # List of targets you want to build. Add/remove as needed.
+        # The set of targets to build. Add/remove as needed.
         target:
           - x86_64-unknown-linux-musl
           - x86_64-unknown-linux-gnu
@@ -79,47 +78,48 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4                # checkout again for each matrix entry :contentReference[oaicite:17]{index=17}
 
       - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@main        # use the same Rust installer :contentReference[oaicite:18]{index=18}
         with:
           toolchain: stable
           profile: minimal
-          override: true
 
-      # Install cross once (cached by Cargo)
+      # Install cross (cached by Cargo)
       - name: Install cross
         run: cargo install cross
 
-      # Ensure the Rust target is added
+      # Ensure the Rust target is added (though cross usually handles this)
       - name: Add Rust target (if needed)
         run: rustup target add ${{ matrix.target }} || true
 
-      # Build with `cross` so that each matrix entry is built in parallel
+      # Build with cross so that each matrix entry runs in parallel
       - name: Build release for ${{ matrix.target }}
         run: |
           cross build --release --target ${{ matrix.target }}
         env:
-          # Let cross reuse the host’s Docker credentials if building multiple Linux targets
+          # Let cross reuse the host’s Docker credentials
           CROSS_WAIT: "10"
 
       # Collect the built binary (.exe on Windows)
       - name: Package artifact
         run: |
-          BINARY_NAME="watchdogfs"                          # Replace with your binary name
+          BINARY_NAME="watchdogfs"                          # ← Replace with your actual binary name
           TARGET_DIR="target/${{ matrix.target }}/release"
           mkdir -p artifacts/${{ matrix.target }}
 
           if [[ "${{ matrix.target }}" == *"windows-gnu" ]]; then
-            cp "${TARGET_DIR}/${BINARY_NAME}.exe" artifacts/${{ matrix.target }}/${BINARY_NAME}-${{ matrix.target }}.exe
+            cp "${TARGET_DIR}/${BINARY_NAME}.exe" \
+               "artifacts/${{ matrix.target }}/${BINARY_NAME}-${{ matrix.target }}.exe"
           else
-            cp "${TARGET_DIR}/${BINARY_NAME}" artifacts/${{ matrix.target }}/${BINARY_NAME}-${{ matrix.target }}
-            chmod +x artifacts/${{ matrix.target }}/${BINARY_NAME}-${{ matrix.target }}
+            cp "${TARGET_DIR}/${BINARY_NAME}" \
+               "artifacts/${{ matrix.target }}/${BINARY_NAME}-${{ matrix.target }}"
+            chmod +x "artifacts/${{ matrix.target }}/${BINARY_NAME}-${{ matrix.target }}"
           fi
 
       - name: Upload built artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4        # v4 is the latest upload-artifact action :contentReference[oaicite:19]{index=19}
         with:
           name: watchdogfs-${{ matrix.target }}
           path: artifacts/${{ matrix.target }}/
@@ -134,40 +134,19 @@ jobs:
 
     steps:
       - name: Download all artifacts from release job
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4     # v4 is the latest download-artifact action :contentReference[oaicite:20]{index=20}
         with:
-          # Download everything uploaded by `release`
+          # Grab every artifact that “release” uploaded
           path: ./all_artifacts
 
-      # Create (or fetch) a GitHub Release for this tag
+      # Create a GitHub Release (or update if it already exists) using softprops/action-gh-release@v1
       - name: Create GitHub Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v1   # active, community-recommended release action :contentReference[oaicite:21]{index=21}
         with:
-          tag_name: ${{ github.ref_name }}       # e.g. "v1.0.0"
-          release_name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-
-      # Upload each target-specific binary as a separate asset via curl
-      - name: Loop & attach each binary
-        shell: bash
-        run: |
-          set -euo pipefail
-          RELEASE_UPLOAD_URL="${{ steps.create_release.outputs.upload_url }}"
-
-          for dir in all_artifacts/*/; do
-            for file in "$dir"*; do
-              fname=$(basename "$file")
-              echo "Uploading $fname to GitHub Release..."
-              curl \
-                -X POST \
-                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-                -H "Content-Type: application/octet-stream" \
-                --data-binary @"$file" \
-                "${RELEASE_UPLOAD_URL}?name=${fname}"
-            done
-          done
+          files: ./all_artifacts/*/*           # upload all binaries in subfolders as assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release published
-        run: echo "Release ${{ github.ref_name }} published with artifacts!"
+        run: echo "✅ Release ${{ github.ref_name }} published with artifacts!"
