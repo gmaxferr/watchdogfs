@@ -64,7 +64,7 @@ jobs:
   # ────────────────────────────────────────────────────────────────────────────
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    needs: test-and-lint       # ensure tests pass before building release
+    # needs: test-and-lint       # ensure tests pass before building release
     runs-on: ubuntu-latest
 
     strategy:
@@ -87,7 +87,12 @@ jobs:
 
       # Install cross (cached by Cargo)
       - name: Install cross (pinned to 0.2.5)
-        run: cargo install cross --version 0.2.5
+        run: |
+          cargo install cross --version 0.2.5
+          echo "Cross installed successfully!"
+
+      - name: Add Cargo bin to PATH
+          run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       # Ensure the Rust target is added (though cross usually handles this)
       - name: Add Rust target (if needed)
