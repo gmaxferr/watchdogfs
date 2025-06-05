@@ -92,7 +92,8 @@ jobs:
           echo "Cross installed successfully!"
 
       - name: Add Cargo bin to PATH
-          run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        run: 'echo "${HOME}/.cargo/bin" >> $GITHUB_PATH'
+
 
       # Ensure the Rust target is added (though cross usually handles this)
       - name: Add Rust target (if needed)
