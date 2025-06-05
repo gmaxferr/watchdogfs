@@ -89,6 +89,10 @@ jobs:
       - name: Install cross
         run: cargo install cross
 
+      # Expose ~/.cargo/bin (where `cross` was installed) to PATH
+      - name: Add Cargo bin to PATH
+        run: echo "${HOME}/.cargo/bin" >> $GITHUB_PATH
+
       # Ensure the Rust target is added (though cross usually handles this)
       - name: Add Rust target (if needed)
         run: rustup target add ${{ matrix.target }} || true
