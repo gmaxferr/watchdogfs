@@ -1,6 +1,6 @@
 name: CI / Release
 
-# 1) Run tests on pushes to master or PRs
+# 1) Run tests on pushes to master, PRs, or tag pushes
 # 2) Create a GitHub Release (and upload artifacts) when you push a tag like "v1.2.3"
 on:
   push:
@@ -11,16 +11,15 @@ on:
   pull_request:
 
 env:
-  # Make sure we cache ~/.cargo so that both registry+git caches are shared
+  # Make sure we cache ~/.cargo so that both registry + git caches are shared
   CARGO_HOME: ~/.cargo
   RUSTUP_HOME:  ~/.rustup
 
 jobs:
   # ────────────────────────────────────────────────────────────────────────────
-  # 1) CI job: run clippy + tests on master/PR
+  # 1) CI job: run clippy + tests on any push or PR (including tag pushes)
   # ────────────────────────────────────────────────────────────────────────────
   test-and-lint:
-    if: github.event_name != 'push' || github.ref_type != 'tag'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -100,24 +99,15 @@ jobs:
       # Build with `cross` so that each matrix entry is built in parallel
       - name: Build release for ${{ matrix.target }}
         run: |
-          # If you want to compile with features or a workspace:
-          # cross build --release --target ${{ matrix.target }} --all
           cross build --release --target ${{ matrix.target }}
         env:
-          # Tell cross to reuse the host's Docker credentials if building many Linux targets
+          # Let cross reuse the host’s Docker credentials if building multiple Linux targets
           CROSS_WAIT: "10"
 
       # Collect the built binary (.exe on Windows)
       - name: Package artifact
         run: |
-          # For Windows, cross will put binaries in:
-          # target/x86_64-pc-windows-gnu/release/*.exe
-          #
-          # For Linux/musl and linux-gnu:
-          # target/$TARGET/release/<your_binary_name>
-          #
-          # For macOS: target/x86_64-apple-darwin/release/<your_binary_name>
-          BINARY_NAME="watchdogfs"             # <-- Replace with your actual binary name
+          BINARY_NAME="watchdogfs"                          # <-- your actual binary name
           TARGET_DIR="target/${{ matrix.target }}/release"
           mkdir -p artifacts/${{ matrix.target }}
           
@@ -131,7 +121,7 @@ jobs:
       - name: Upload built artifact
         uses: actions/upload-artifact@v3
         with:
-          name: my-cli-${{ matrix.target }}
+          name: watchdogfs-${{ matrix.target }}
           path: artifacts/${{ matrix.target }}/
 
   # ────────────────────────────────────────────────────────────────────────────
@@ -149,26 +139,17 @@ jobs:
           # Download everything uploaded by `release` under any name
           path: ./all_artifacts
 
-      # Create a GitHub Release (if it doesn't exist) or update the existing one
+      # Create (or fetch) a GitHub Release for this tag
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ github.ref_name }}       # e.g. "v1.2.3"
+          tag_name: ${{ github.ref_name }}       # e.g. "v1.0.0"
           release_name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
 
       # Upload each target‐specific binary as a separate asset
-      - name: Upload target binaries to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./all_artifacts
-          asset_name: ''   # We will override `asset_name` dynamically per file below
-          asset_content_type: application/octet-stream
-        # Unfortunately upload-release-asset@v1 does not support globbing,
-        # so we must loop over files and call this step multiple times.
       - name: Loop & attach each binary
         shell: bash
         run: |
