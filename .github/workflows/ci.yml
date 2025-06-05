@@ -23,18 +23,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4                # latest checkout action :contentReference[oaicite:12]{index=12}
+        uses: actions/checkout@v4                 # latest checkout action
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@main        # actively maintained Rust installer :contentReference[oaicite:13]{index=13}
+        # Use @stable instead of @main; ensures GitHub can find it
+        uses: dtolnay/rust-toolchain@stable       
         with:
           toolchain: stable
-          profile: minimal
-          components: rustfmt, clippy
+          components: clippy, rustfmt
 
       # Cache the registry and index so that `cargo fetch` is fast
       - name: Cache cargo registry
-        uses: actions/cache@v3                   # v3 is the current cache action :contentReference[oaicite:14]{index=14}
+        uses: actions/cache@v3
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
@@ -42,7 +42,7 @@ jobs:
             ${{ runner.os }}-cargo-registry-
 
       - name: Cache cargo-git index
-        uses: actions/cache@v3                   # cache the git index for faster fetches :contentReference[oaicite:15]{index=15}
+        uses: actions/cache@v3
         with:
           path: ~/.cargo/git
           key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
@@ -64,7 +64,7 @@ jobs:
   # ────────────────────────────────────────────────────────────────────────────
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    needs: test-and-lint       # ensure tests pass before building release :contentReference[oaicite:16]{index=16}
+    needs: test-and-lint       # ensure tests pass before building release
     runs-on: ubuntu-latest
 
     strategy:
@@ -78,13 +78,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4                # checkout again for each matrix entry :contentReference[oaicite:17]{index=17}
+        uses: actions/checkout@v4
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@main        # use the same Rust installer :contentReference[oaicite:18]{index=18}
+        uses: dtolnay/rust-toolchain@stable 
         with:
           toolchain: stable
-          profile: minimal
 
       # Install cross (cached by Cargo)
       - name: Install cross
@@ -119,7 +118,7 @@ jobs:
           fi
 
       - name: Upload built artifact
-        uses: actions/upload-artifact@v4        # v4 is the latest upload-artifact action :contentReference[oaicite:19]{index=19}
+        uses: actions/upload-artifact@v4      # v4 is the latest version
         with:
           name: watchdogfs-${{ matrix.target }}
           path: artifacts/${{ matrix.target }}/
@@ -134,17 +133,16 @@ jobs:
 
     steps:
       - name: Download all artifacts from release job
-        uses: actions/download-artifact@v4     # v4 is the latest download-artifact action :contentReference[oaicite:20]{index=20}
+        uses: actions/download-artifact@v4      # v4 is the latest version
         with:
-          # Grab every artifact that “release” uploaded
-          path: ./all_artifacts
+          path: ./all_artifacts                 # gather all target-specific binaries
 
-      # Create a GitHub Release (or update if it already exists) using softprops/action-gh-release@v1
-      - name: Create GitHub Release
+      # Create (or update) the GitHub Release and upload all binaries at once
+      - name: Create GitHub Release & Attach Assets
         id: create_release
-        uses: softprops/action-gh-release@v1   # active, community-recommended release action :contentReference[oaicite:21]{index=21}
+        uses: softprops/action-gh-release@v1    # v1 is the latest stable
         with:
-          files: ./all_artifacts/*/*           # upload all binaries in subfolders as assets
+          files: ./all_artifacts/*/*            # upload every file in subfolders
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
