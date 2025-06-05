@@ -87,10 +87,7 @@ jobs:
 
       # Install cross (cached by Cargo)
       - name: Install cross (pinned to 0.2.5)
-        uses: actions-rs/install@v1
-        with:
-          crate: cross
-          version: "0.2.5"
+        run: cargo install cross --version 0.2.5
 
       # Ensure the Rust target is added (though cross usually handles this)
       - name: Add Rust target (if needed)
