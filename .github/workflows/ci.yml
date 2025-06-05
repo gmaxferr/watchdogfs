@@ -1,6 +1,6 @@
 name: CI / Release
 
-# 1) Run tests on pushes to master, PRs, or tag pushes
+# 1) Run tests on pushes to master, PRs, or tags
 # 2) Create a GitHub Release (and upload artifacts) when you push a tag like "v1.2.3"
 on:
   push:
@@ -11,13 +11,13 @@ on:
   pull_request:
 
 env:
-  # Make sure we cache ~/.cargo so that both registry + git caches are shared
+  # Ensure we cache ~/.cargo so both registry + git caches are shared
   CARGO_HOME: ~/.cargo
   RUSTUP_HOME:  ~/.rustup
 
 jobs:
   # ────────────────────────────────────────────────────────────────────────────
-  # 1) CI job: run clippy + tests on any push or PR (including tag pushes)
+  # 1) CI job: run clippy + tests on any push/PR (including tag pushes)
   # ────────────────────────────────────────────────────────────────────────────
   test-and-lint:
     runs-on: ubuntu-latest
@@ -70,7 +70,7 @@ jobs:
 
     strategy:
       matrix:
-        # List of targets you want to build. You can add/remove as needed.
+        # List of targets you want to build. Add/remove as needed.
         target:
           - x86_64-unknown-linux-musl
           - x86_64-unknown-linux-gnu
@@ -92,7 +92,7 @@ jobs:
       - name: Install cross
         run: cargo install cross
 
-      # Ensure the target is added (for targets that don't need cross, you could skip this)
+      # Ensure the Rust target is added
       - name: Add Rust target (if needed)
         run: rustup target add ${{ matrix.target }} || true
 
@@ -107,10 +107,10 @@ jobs:
       # Collect the built binary (.exe on Windows)
       - name: Package artifact
         run: |
-          BINARY_NAME="watchdogfs"                          # <-- your actual binary name
+          BINARY_NAME="watchdogfs"                          # Replace with your binary name
           TARGET_DIR="target/${{ matrix.target }}/release"
           mkdir -p artifacts/${{ matrix.target }}
-          
+
           if [[ "${{ matrix.target }}" == *"windows-gnu" ]]; then
             cp "${TARGET_DIR}/${BINARY_NAME}.exe" artifacts/${{ matrix.target }}/${BINARY_NAME}-${{ matrix.target }}.exe
           else
@@ -119,7 +119,7 @@ jobs:
           fi
 
       - name: Upload built artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: watchdogfs-${{ matrix.target }}
           path: artifacts/${{ matrix.target }}/
@@ -134,9 +134,9 @@ jobs:
 
     steps:
       - name: Download all artifacts from release job
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v2
         with:
-          # Download everything uploaded by `release` under any name
+          # Download everything uploaded by `release`
           path: ./all_artifacts
 
       # Create (or fetch) a GitHub Release for this tag
@@ -149,14 +149,13 @@ jobs:
           draft: false
           prerelease: false
 
-      # Upload each target‐specific binary as a separate asset
+      # Upload each target-specific binary as a separate asset via curl
       - name: Loop & attach each binary
         shell: bash
         run: |
           set -euo pipefail
           RELEASE_UPLOAD_URL="${{ steps.create_release.outputs.upload_url }}"
 
-          # For each target folder in all_artifacts/, upload the file inside it
           for dir in all_artifacts/*/; do
             for file in "$dir"*; do
               fname=$(basename "$file")
@@ -172,4 +171,3 @@ jobs:
 
       - name: Release published
         run: echo "Release ${{ github.ref_name }} published with artifacts!"
-
